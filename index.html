@@ -142,20 +142,24 @@
                 return [dx + pos[0] * sx, dy + pos[1] * sy];
             }
             
-            // Initialize heart points - Balanced size
+            // Initialize heart points - Smaller on mobile for better visibility
             const dr = mobile ? 0.3 : 0.1;
+            const heartScale1 = mobile ? 60 : 120; // Much smaller on mobile
+            const heartScale2 = mobile ? 45 : 90;
+            const heartScale3 = mobile ? 30 : 60;
+            
             for (let i = 0; i < Math.PI * 2; i += dr) {
-                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 120, 7, 0, 0));
+                pointsOrigin.push(scaleAndTranslate(heartPosition(i), heartScale1, mobile ? 4 : 7, 0, 0));
             }
             for (let i = 0; i < Math.PI * 2; i += dr) {
-                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 90, 5, 0, 0));
+                pointsOrigin.push(scaleAndTranslate(heartPosition(i), heartScale2, mobile ? 3 : 5, 0, 0));
             }
             for (let i = 0; i < Math.PI * 2; i += dr) {
-                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 60, 4, 0, 0));
+                pointsOrigin.push(scaleAndTranslate(heartPosition(i), heartScale3, mobile ? 2 : 4, 0, 0));
             }
             
-            // Create particles - More particles for better effect
-            const traceCount = mobile ? 20 : 40;
+            // Create particles - Fewer particles on mobile for better performance
+            const traceCount = mobile ? 15 : 40;
             for (let i = 0; i < pointsOrigin.length; i++) {
                 const x = Math.random() * width;
                 const y = Math.random() * height;
@@ -167,7 +171,7 @@
                     q: ~~(Math.random() * pointsOrigin.length),
                     D: 2 * (i % 2) - 1,
                     force: 0.2 * Math.random() + 0.7,
-                    f: `hsla(${Math.random() * 60 + 320}, ${~~(40 * Math.random() + 60)}%, ${~~(60 * Math.random() + 20)}%, 0.4)`,
+                    f: `hsla(${Math.random() * 60 + 320}, ${~~(40 * Math.random() + 60)}%, ${~~(60 * Math.random() + 20)}%, ${mobile ? 0.6 : 0.4})`,
                     trace: []
                 };
                 
