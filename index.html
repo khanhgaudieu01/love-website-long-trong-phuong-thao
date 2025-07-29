@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Long Trọng & Phương Thảo - Love Code Animation</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/animations.css">
+</head>
+<body class="bg-black text-white overflow-hidden">
+    <!-- Loading Screen -->
+    <div id="loading" class="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="text-6xl mb-4 animate-pulse">💕</div>
+            <div class="text-xl font-light">Đang tải...</div>
+        </div>
+    </div>
+
+    <!-- Header with Artistic Effect -->
+    <header class="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-sm border-b border-pink-500/30">
+        <div class="container mx-auto px-6 py-4">
+            <h1 class="text-2xl font-bold text-center text-pink-400 animate-pulse" 
+                style="text-shadow: 0 0 20px rgba(236, 72, 153, 0.8);">
+                💕 Long Trọng & Phương Thảo 💕
+            </h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex flex-col md:flex-row h-screen pt-16">
+        <!-- Animation Panel - Full width on mobile, half on desktop -->
+        <div class="w-full md:w-1/2 relative bg-black h-1/2 md:h-full">
+            <!-- Canvas for Heart Animation -->
+            <canvas id="heartCanvas" class="absolute inset-0 w-full h-full"></canvas>
+            
+            <!-- Music Controls -->
+            <div class="absolute bottom-2 left-2 md:bottom-4 md:left-4 z-20">
+                <div class="bg-black/60 backdrop-blur-sm rounded-lg p-2 md:p-4 border border-pink-500/30">
+                    <div class="text-xs md:text-sm text-pink-300 mb-1 md:mb-2">🎵 Cưới Nhau Đi</div>
+                    <div class="text-xs text-gray-400 mb-1 md:mb-2">Bùi Anh Tuấn, Hiền Hồ</div>
+                    <button id="musicToggle" class="bg-pink-500 hover:bg-pink-600 text-white px-2 py-1 md:px-3 rounded text-xs md:text-sm transition-colors">
+                        ▶️ Phát nhạc
+                    </button>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Code Panel - Full width on mobile, half on desktop -->
+        <div class="w-full md:w-1/2 bg-black/20 backdrop-blur-sm border-t md:border-t-0 md:border-l border-pink-500/20 h-1/2 md:h-full">
+            <div class="code-container">
+                <div class="code-header bg-black/40 backdrop-blur-sm">
+                    <span class="text-pink-400 text-xs md:text-sm">💻 Code Animation</span>
+                </div>
+                <div id="codeContent" class="code-content bg-transparent">
+                    <!-- Code will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Audio Element -->
+    <audio id="backgroundMusic" loop>
+        <source src="Cưới Nhau Đi (Yes I Do).mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- All-in-one Script -->
+    <script>
+        // Global variables
+        let isLoaded = false;
+        let isMusicPlaying = false;
+        let artisticHeart = null;
+        let codeScroller = null;
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('💕 Initializing Love Code App...');
+            
+            // Hide loading screen
+            setTimeout(function() {
+                const loading = document.getElementById('loading');
+                if (loading) {
+                    loading.style.opacity = '0';
+                    loading.style.transition = 'opacity 0.5s ease';
+                    setTimeout(function() {
+                        loading.style.display = 'none';
+                    }, 500);
+                }
+            }, 1000);
+            
+            // Initialize components
+            initializeArtisticHeart();
+            initializeCodeScroller();
+            initializeMusicControls();
+            initializeEventListeners();
+            
+            isLoaded = true;
+            console.log('✅ Love Code App đã sẵn sàng!');
+        });
+
+        // Artistic Heart Animation
+        function initializeArtisticHeart() {
+            const canvas = document.getElementById('heartCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const mobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase());
+            const koef = mobile ? 0.5 : 1;
+            
+            // Responsive canvas sizing
+            const isMobile = window.innerWidth < 768;
+            let width, height;
+            
+            if (isMobile) {
+                // Mobile: full width, half height
+                width = canvas.width = koef * window.innerWidth;
+                height = canvas.height = koef * (window.innerHeight / 2);
+            } else {
+                // Desktop: half width, full height
+                width = canvas.width = koef * (window.innerWidth / 2);
+                height = canvas.height = koef * window.innerHeight;
+            }
+            
+            // Heart animation variables
+            let time = 0;
+            let particles = [];
+            let targetPoints = [];
+            let pointsOrigin = [];
+            
+            // Create heart points
+            function heartPosition(rad) {
+                return [
+                    Math.pow(Math.sin(rad), 3), 
+                    -(15 * Math.cos(rad) - 5 * Math.cos(2 * rad) - 2 * Math.cos(3 * rad) - Math.cos(4 * rad))
+                ];
+            }
+            
+            function scaleAndTranslate(pos, sx, sy, dx, dy) {
+                return [dx + pos[0] * sx, dy + pos[1] * sy];
+            }
+            
+            // Initialize heart points - Balanced size
+            const dr = mobile ? 0.3 : 0.1;
+            for (let i = 0; i < Math.PI * 2; i += dr) {
+                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 120, 7, 0, 0));
+            }
+            for (let i = 0; i < Math.PI * 2; i += dr) {
+                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 90, 5, 0, 0));
+            }
+            for (let i = 0; i < Math.PI * 2; i += dr) {
+                pointsOrigin.push(scaleAndTranslate(heartPosition(i), 60, 4, 0, 0));
+            }
+            
+            // Create particles - More particles for better effect
+            const traceCount = mobile ? 20 : 40;
+            for (let i = 0; i < pointsOrigin.length; i++) {
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                
+                const particle = {
+                    vx: 0,
+                    vy: 0,
+                    speed: Math.random() + 3,
+                    q: ~~(Math.random() * pointsOrigin.length),
+                    D: 2 * (i % 2) - 1,
+                    force: 0.2 * Math.random() + 0.7,
+                    f: `hsla(${Math.random() * 60 + 320}, ${~~(40 * Math.random() + 60)}%, ${~~(60 * Math.random() + 20)}%, 0.4)`,
+                    trace: []
+                };
+                
+                for (let k = 0; k < traceCount; k++) {
+                    particle.trace[k] = { x: x, y: y };
+                }
+                
+                particles.push(particle);
+            }
+            
+            // Animation functions
+            function pulse(kx, ky) {
+                for (let i = 0; i < pointsOrigin.length; i++) {
+                    targetPoints[i] = [];
+                    targetPoints[i][0] = kx * pointsOrigin[i][0] + width / 2;
+                    targetPoints[i][1] = ky * pointsOrigin[i][1] + height / 2;
+                }
+            }
+            
+            function animate() {
+                const n = -Math.cos(time);
+                pulse((1 + n) * 0.5, (1 + n) * 0.5);
+                time += ((Math.sin(time)) < 0 ? 9 : (n > 0.8) ? 0.2 : 1) * 0.01;
+                
+                // Clear with fade effect
+                ctx.fillStyle = "rgba(0,0,0,0.1)";
+                ctx.fillRect(0, 0, width, height);
+                
+                // Update particles
+                for (let i = particles.length; i--;) {
+                    const particle = particles[i];
+                    const target = targetPoints[particle.q];
+                    
+                    if (!target) continue;
+                    
+                    const dx = particle.trace[0].x - target[0];
+                    const dy = particle.trace[0].y - target[1];
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (length < 10) {
+                        if (Math.random() > 0.95) {
+                            particle.q = ~~(Math.random() * targetPoints.length);
+                        } else {
+                            if (Math.random() > 0.99) {
+                                particle.D *= -1;
+                            }
+                            particle.q += particle.D;
+                            particle.q %= targetPoints.length;
+                            if (particle.q < 0) {
+                                particle.q += targetPoints.length;
+                            }
+                        }
+                    }
+                    
+                    particle.vx += -dx / length * particle.speed;
+                    particle.vy += -dy / length * particle.speed;
+                    particle.trace[0].x += particle.vx;
+                    particle.trace[0].y += particle.vy;
+                    particle.vx *= particle.force;
+                    particle.vy *= particle.force;
+                    
+                    // Update trace
+                    for (let k = 0; k < particle.trace.length - 1;) {
+                        const current = particle.trace[k];
+                        const next = particle.trace[++k];
+                        next.x -= 0.4 * (next.x - current.x);
+                        next.y -= 0.4 * (next.y - current.y);
+                    }
+                    
+                    // Draw particle trail
+                    ctx.fillStyle = particle.f;
+                    for (let k = 0; k < particle.trace.length; k++) {
+                        ctx.fillRect(particle.trace[k].x, particle.trace[k].y, 1, 1);
+                    }
+                }
+                
+                requestAnimationFrame(animate);
+            }
+            
+            // Handle resize
+            window.addEventListener('resize', function() {
+                const isMobile = window.innerWidth < 768;
+                
+                if (isMobile) {
+                    width = canvas.width = koef * window.innerWidth;
+                    height = canvas.height = koef * (window.innerHeight / 2);
+                } else {
+                    width = canvas.width = koef * (window.innerWidth / 2);
+                    height = canvas.height = koef * window.innerHeight;
+                }
+                
+                ctx.fillStyle = "rgba(0,0,0,1)";
+                ctx.fillRect(0, 0, width, height);
+            });
+            
+            // Start animation
+            ctx.fillStyle = "rgba(0,0,0,1)";
+            ctx.fillRect(0, 0, width, height);
+            animate();
+            
+            artisticHeart = {
+                // Simple interface for future use
+            };
+        }
+
+        // Code Scroller
+        function initializeCodeScroller() {
+            const codeContent = document.getElementById('codeContent');
+            if (!codeContent) return;
+            
+            const codeLines = [
+                '// 💕 Love Story Code - Long Trọng & Phương Thảo 💕',
+                '// A romantic journey through code and hearts',
+                '',
+                'class LoveStory {',
+                '    constructor() {',
+                '        this.hearts = [];',
+                '        this.time = 0;',
+                '        this.love = 100; // Love level starts at 100%',
+                '        this.together = true;',
+                '    }',
+                '',
+                '    createHeart() {',
+                '        const heart = {',
+                '            x: Math.random() * 800,',
+                '            y: Math.random() * 600,',
+                '            size: Math.random() * 20 + 10,',
+                '            color: this.getLoveColor(),',
+                '            pulse: 0',
+                '        };',
+                '        this.hearts.push(heart);',
+                '    }',
+                '',
+                '    getLoveColor() {',
+                '        const colors = [',
+                '            "hsl(330, 100%, 70%)", // Pink',
+                '            "hsl(350, 100%, 60%)", // Red',
+                '            "hsl(280, 100%, 70%)"  // Purple',
+                '        ];',
+                '        return colors[Math.floor(Math.random() * colors.length)];',
+                '    }',
+                '',
+                '    updateLove() {',
+                '        this.time += 0.01;',
+                '        this.love = 100 + Math.sin(this.time) * 10;',
+                '        ',
+                '        // Create new hearts when love is high',
+                '        if (this.love > 105 && Math.random() < 0.1) {',
+                '            this.createHeart();',
+                '        }',
+                '    }',
+                '',
+                '    drawHearts(ctx) {',
+                '        ctx.fillStyle = "rgba(0,0,0,0.1)";',
+                '        ctx.fillRect(0, 0, 800, 600);',
+                '        ',
+                '        for (let heart of this.hearts) {',
+                '            heart.pulse += 0.1;',
+                '            const scale = 1 + Math.sin(heart.pulse) * 0.2;',
+                '            ',
+                '            ctx.save();',
+                '            ctx.translate(heart.x, heart.y);',
+                '            ctx.scale(scale, scale);',
+                '            ctx.fillStyle = heart.color;',
+                '            this.drawHeartShape(ctx, heart.size);',
+                '            ctx.restore();',
+                '        }',
+                '    }',
+                '',
+                '    drawHeartShape(ctx, size) {',
+                '        ctx.beginPath();',
+                '        ctx.moveTo(0, size * 0.3);',
+                '        ctx.bezierCurveTo(-size, -size, -size, size, 0, size * 1.3);',
+                '        ctx.bezierCurveTo(size, size, size, -size, 0, size * 0.3);',
+                '        ctx.fill();',
+                '    }',
+                '',
+                '    animate() {',
+                '        this.updateLove();',
+                '        this.drawHearts(this.ctx);',
+                '        requestAnimationFrame(() => this.animate());',
+                '    }',
+                '}',
+                '',
+                '// 💕 Forever Together 💕',
+                'const loveStory = new LoveStory();',
+                'loveStory.animate();',
+                '',
+                '// Long Trọng & Phương Thảo - Love Code ❤️',
+                '// Made with infinite love and JavaScript 💕'
+            ];
+            
+            let currentLine = 0;
+            let scrollSpeed = 0.5; // Fixed speed at 0.5x
+            let scrollInterval = null;
+            
+            function renderCode() {
+                const isMobile = window.innerWidth < 768;
+                const visibleLines = isMobile ? 15 : 25; // Fewer lines on mobile
+                const startLine = Math.max(0, currentLine - Math.floor(visibleLines / 2));
+                const endLine = Math.min(codeLines.length, startLine + visibleLines);
+                
+                let html = '';
+                for (let i = startLine; i < endLine; i++) {
+                    const line = codeLines[i];
+                    const lineNumber = i + 1;
+                    const isCurrentLine = i === currentLine;
+                    
+                    html += `<div class="code-line ${isCurrentLine ? 'bg-pink-500/20' : ''}" style="animation-delay: ${(i - startLine) * 0.05}s;">`;
+                    html += `<span class="line-number">${lineNumber.toString().padStart(3, ' ')}</span>`;
+                    html += `<span class="code-text">${highlightSyntax(line)}</span>`;
+                    html += '</div>';
+                }
+                
+                codeContent.innerHTML = html;
+            }
+            
+            function highlightSyntax(code) {
+                if (!code || typeof code !== 'string') return '';
+                
+                return code
+                    .replace(/\b(class|constructor|for|let|of|in|if|else|return|new|const|function|this|love|heart|forever|together)\b/g, '<span class="keyword">$1</span>')
+                    .replace(/(\/\/.*)/g, '<span class="comment">$1</span>')
+                    .replace(/(['"`])(.*?)\1/g, '<span class="string">$1$2$1</span>')
+                    .replace(/\b(\d+)\b/g, '<span class="number">$1</span>')
+                    .replace(/([{}()\[\]]|;|,|\.)/g, '<span class="operator">$1</span>');
+            }
+            
+            function startScrolling() {
+                if (scrollInterval) clearInterval(scrollInterval);
+                
+                scrollInterval = setInterval(() => {
+                    currentLine = Math.floor((currentLine + scrollSpeed) % codeLines.length);
+                    renderCode();
+                }, 2000 / scrollSpeed); // Adjust timing based on speed
+            }
+            
+            // Start scrolling
+            renderCode();
+            startScrolling();
+            
+            codeScroller = {
+                // Simple interface for future use
+            };
+        }
+
+        // Music Controls
+        function initializeMusicControls() {
+            const musicToggle = document.getElementById('musicToggle');
+            const audio = document.getElementById('backgroundMusic');
+            
+            if (musicToggle && audio) {
+                musicToggle.addEventListener('click', function() {
+                    if (isMusicPlaying) {
+                        audio.pause();
+                        musicToggle.textContent = '▶️ Phát nhạc';
+                        isMusicPlaying = false;
+                    } else {
+                        audio.play().catch(function(e) {
+                            console.log('🎵 Không thể phát nhạc:', e.message);
+                            musicToggle.textContent = '❌ Lỗi nhạc';
+                        });
+                        musicToggle.textContent = '⏸️ Tạm dừng';
+                        isMusicPlaying = true;
+                    }
+                });
+            }
+        }
+
+        // Event Listeners
+        function initializeEventListeners() {
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                switch(e.code) {
+                    case 'KeyM':
+                        e.preventDefault();
+                        const musicToggle = document.getElementById('musicToggle');
+                        if (musicToggle) {
+                            musicToggle.click();
+                        }
+                        break;
+                }
+            });
+        }
+    </script>
+</body>
+</html> 

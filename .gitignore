@@ -1,0 +1,17 @@
+# Ignore video files (too large)
+*.mp4
+videoQR.mp4
+videoWeb.mp4
+
+# Ignore scripts folder (already inlined)
+scripts/
+
+# Ignore README and other docs
+README.md
+
+# Ignore ZIP files
+*.zip
+
+# Ignore temp files
+*.tmp
+*.temp 

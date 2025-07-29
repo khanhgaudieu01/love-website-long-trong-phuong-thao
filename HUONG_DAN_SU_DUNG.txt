@@ -1,0 +1,30 @@
+💕 HƯỚNG DẪN SỬ DỤNG WEBSITE TÌNH YÊU 💕
+============================================
+
+🎯 CÁCH XEM WEBSITE:
+1. Giải nén file "LoveWebsite.zip"
+2. Mở file "index.html" bằng trình duyệt web (Chrome, Firefox, Edge...)
+3. Website sẽ tự động chạy với animation trái tim và nhạc
+
+🎵 CÁCH SỬ DỤNG NHẠC:
+- Nhấn nút "▶️ Phát nhạc" ở góc dưới trái để phát nhạc
+- Nhấn "⏸️ Tạm dừng" để tạm dừng
+- Hoặc nhấn phím "M" để bật/tắt nhạc
+
+📱 HỖ TRỢ THIẾT BỊ:
+- Desktop: Trái tim bên phải, code bên trái
+- Điện thoại: Trái tim ở trên, code ở dưới
+- Tự động điều chỉnh kích thước
+
+🎨 TÍNH NĂNG:
+- Animation trái tim lãng mạn
+- Code tự động scroll với nội dung tình yêu
+- Nhạc nền "Cưới Nhau Đi"
+- Giao diện responsive đẹp mắt
+
+💝 LƯU Ý:
+- Cần có kết nối internet để load font chữ
+- Nhạc sẽ tự động tải khi mở website
+- Animation chạy mượt mà trên mọi thiết bị
+
+🎉 Chúc anh Trọng và Thảo có những giây phút lãng mạn! 💕 
